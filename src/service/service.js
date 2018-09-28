@@ -1,5 +1,5 @@
 const config = {
-  url: 'http://123.59.14.177:7777'
+  url: 'localhost:7777'
 }
 
 async function getDatabase () {
