@@ -1,89 +1,63 @@
-<template><div class="columndata">
-<div class="commands">
-  <button>新建</button>
-  <button>重命名</button>
-  <button>删除</button>
-</div>
-<div class="table"><table border="0" cellspacing="0">
-  <thead>
-    <tr><th v-for="(th,index) in tableTitle" :key="index">
-      {{th}}
-    </th></tr>
-  </thead>
-  <tbody >
-    <tr v-for="(tr,index) in data" :key="index">
-      <td v-for="(th,index) in tableTitle" :key="index">
-        {{tr[th]}}
-      </td>
-    </tr>
-  </tbody>
-</table></div>
+<template><div class="w h">
+  <div class="left fl h">
+    <header class="header">
+      <div class="db1">选择数据库</div>
+      <div class="db2">
+        <DatabaseList @change="changeDB"/>
+      </div>
+    </header>
+    <TableList class="table"
+      :database="database"
+      :table="table"
+      @change="changeTable"
+    />
+  </div>
+  <div class="right fr h">
+    <router-view/>
+  </div>
 </div></template>
 
 <script>
+import DatabaseList from './DatabaseList.vue'
+import TableList from './TableList.vue'
 export default {
-  name: 'columndata',
-  inject: ['service'],
-  props: ['database', 'table'], // eslint-disable-next-line
+  name: 'database',
+  props: ['database', 'table'],
+  components: {
+    DatabaseList, TableList
+  }, // eslint-disable-next-line
   data: function () { return {
-    data: [],
-    tableTitle: []// eslint-disable-next-line
+    tables: { 'tool': 'info' } // eslint-disable-next-line
   } },
   watch: {
-    $route: function (to, from) {
-      this.database !== 'undefined' && this.table !== 'undefined' &&
-      this.refreshData(this.database, this.table)
-    }
+    test () { alert(this.test) }
   },
   methods: {
-    async refreshData (db, tbl) {
-      let data = await this.service.getData(db, tbl)
-      this.tableTitle = []
-      if (data.length > 0) {
-        Reflect.ownKeys(data[0]).forEach(v => this.tableTitle.push(v))
-      }
-      this.data = data
+    changeDB (db) {
+      let path = '/database/' + db
+      let table = this.tables[db]
+      path += table ? '/' + table : ''
+      this.$router.push({ path: path })
+    },
+    changeTable (table) {
+      let db = this.database
+      this.tables[db] = table
+      let path = '/database/' + db + '/' + table
+      this.$router.push({ path: path })
     }
   }
 }
 </script>
 
 <style lang="less" scoped>
-.columndata {
-  width: 100%;
-  height: 100%;
-  // overflow: auto;
-  .commands {
-    height: 50px;line-height: 60px;
-  }
-  .table::-webkit-scrollbar { width: 0 !important }
-  .table {
-    width: 100%;
-    height: calc(100% - 30px);
-    overflow: auto;
-    // overflow-y: hidden;
-  }
-  table th, table td {
-    white-space: nowrap;
-    max-width: 100px;
-    overflow: hidden;
-    padding: 1px;
-  }
-  table th {
-    height: 20px;
-    line-height: 20px;
-    background: rgba(255,255,0,0.1)
-  }
-  table {
-    margin: 5px 10px;
-    font-size: 10px;
-  }
-  button {
-    background: rgba(59, 58, 116, 0.5);
-    border: 1px solid rgb(58, 110, 80);
-    border-radius: 5px;
-    padding: 3px 7px;
-    margin: 0px 5px;
-  }
-}
+.left  { width: 150px; }
+.right { width: calc(100% - 150px); }
+.table { height: calc(100% - 50px); }
+.db1 { height:25px;line-height:30px }
+.db2 { height:25px;line-height:22px }
+// main::before {
+//   content: '';
+//   width: 100%; height:100%;
+//   box-shadow: inset 0 0 5px black;
+// }
 </style>

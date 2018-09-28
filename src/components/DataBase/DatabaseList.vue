@@ -1,59 +1,37 @@
-<template><ul @click="changeSelection">
-  <li class="list"
-    :class="{actived: list.name === currentDatabase}"
-    v-for="(list, index) in lists"
-    :key="index"
+<template><div>
+  <select v-model="selected">
+  <option
+    v-for="(database, index) in databases"
+    :key="index" :value="database.name"
   >
-    {{list.name}}
-  </li>
-</ul></template>
+    {{database.name}}
+  </option></select>
+</div></template>
 
 <script>
 export default {
-  name: 'databaseList',
+  name: 'Database',
   inject: ['service'], // eslint-disable-next-line
   data: function () { return {
-    currentDatabase: '',
-    lists: []// eslint-disable-next-line
+    selected: null,
+    databases: []// eslint-disable-next-line
   } },
   watch: {
-    $route: function () {
-      this.currentDatabase = this.$route.params.database
-    }
+    selected () { this.$emit('change', this.selected) }
   },
-  methods: {
-    excluld (dbname) {
-      return dbname !== 'information_schema' &&
-        dbname !== 'performance_schema' &&
-        dbname !== 'mysql'
-    },
-    changeSelection (e) {
-      let matchName = e.target.innerText || this.currentDatabase
-      this.$emit('list-change', matchName)
-    },
-    async refreshData () {
-      this.lists = []
-      let data = await this.service.getDatabase()
-      data.forEach(v => {
-        this.excluld(v.Database) && this.lists.push({ name: v.Database })
-      })
-      // 初始化选项
-      this.currentDatabase = this.$route.params.database || this.lists[0].name
-      this.$emit('list-change', this.currentDatabase)
-    }
-  },
-  async created () { this.refreshData() }
+
+  // 生命周期钩子函数
+  beforeCreate () {},
+  async created () { this.databases = await this.service.getDatabase() },
+  beforeMount () {},
+  mounted () {},
+  beforeUpdate () { this.selected = this.selected || this.databases[0].name },
+  updated () {},
+  activated () {},
+  deactivated () {},
+  beforeDestroy () {},
+  destroyed () { console.log('destroyed') }
 }
 </script>
 
-<style lang="less" scoped>
-.list {
-  background: rgba(90, 90, 3, 0.5);
-  line-height: 30px;
-  border-bottom: 1px solid rgba(53, 53, 2, 0.5);
-}
-.actived {
-  width: 100%;
-  background: rgba(3, 105, 57, 0.5);
-}
-</style>
+<style lang="less" scoped></style>

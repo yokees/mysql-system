@@ -1,58 +1,58 @@
-<template><ul @click="changeSelection">
-  <li class="list"
-    :class="{actived: list.name === currentTable}"
-    v-for="(list, index) in lists"
-    :key="index"
-  >
-    {{list.name}}
-  </li>
-</ul></template>
+<template><div>
+  <ul class="main" @click="changeSelection">
+    <li class="list"
+      :class="{actived:table.name===selected}"
+      v-for="(table, index) in tables"
+      :data-table="table.name"
+      :key="index"
+    >
+      {{table.name}}
+    </li>
+  </ul>
+  <footer class="footer">
+  </footer>
+</div></template>
 
 <script>
 export default {
-  name: 'tableList',
+  name: 'Table',
+  props: ['database', 'table'],
   inject: ['service'], // eslint-disable-next-line
   data: function () { return {
-    currentTable: '',
-    lists: []// eslint-disable-next-line
+    selected: null,
+    tables: []// eslint-disable-next-line
   } },
   watch: {
-    $route: function (newVal, oldVal) {
-      newVal.params.database !== oldVal.params.database && this.refreshData()
-      this.currentTable = this.$route.params.table
-    }
+    async database () {
+      this.tables = await this.service.getTable(this.database)
+      this.selected = this.table || this.tables[0].name
+    },
+    table () { this.selected = this.table || this.selected },
+    selected () { this.$emit('change', this.selected) }
   },
   methods: {
     changeSelection (e) {
-      let matchName = e.target.innerText || this.currentTable
-      this.$emit('list-change', matchName)
-    },
-    async refreshData () {
-      this.lists = []
-      /* 获取数据库中的表 */
-      let db = this.$route.params.database
-      if (!db) return
-      let data = await this.service.getTable(db)
-      data.forEach(v => { this.lists.push({ name: v.table_name }) })
-
-      // 初始化选项
-      let table = this.$route.params.table
-      this.currentTable = table === 'undefined' ? this.lists[0].name : table
-      this.$emit('list-change', this.currentTable)
+      let table = e.target.dataset.table
+      this.selected = table || this.selected
     }
-  },
-  async created () { this.refreshData() }
+  }
 }
 </script>
 
 <style lang="less" scoped>
-.list {
-  background: rgba(90, 90, 3, 0.5);
-  line-height: 30px;
-  border-bottom: 1px solid rgba(53, 53, 2, 0.5);
+.main::-webkit-scrollbar { width: 0 !important }
+.main {
+  height: calc(100% - 24px);
+  background: rgba(122, 122, 10, 0.7);
+  overflow: auto;
+  font-size: 12px;
+  cursor: pointer;
 }
-.actived {
-  width: 100%;
+.list {
+  line-height: 24px;
+  border-bottom: 1px solid rgba(122, 122, 10, 0.4);
+}
+.actived, .list:hover {
   background: rgba(3, 105, 57, 0.5);
 }
 </style>
